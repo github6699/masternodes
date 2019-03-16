@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import json
+import subprocess
+import time
+import datetime
+
+cli = "/usr/local/bin/wiki-cli"
+
+def getStatus():
+    status = json.loads(subprocess.check_output("%s masternode status" % (cli), shell=True))    
+    vin = status['outpoint']
+    getList(vin)
+
+
+def getList(vin):
+    listing = json.loads(subprocess.check_output("%s masternodelist full" % (cli), shell=True))
+    ranks = json.loads(subprocess.check_output("%s masternodelist rank" % (cli), shell=True))
+    output = str(listing[vin])
+    stats = output.split()
+    state = stats[0]
+    #proto = stats[1]
+    address = stats[2]
+    lastpay = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(stats[5])))
+    activesec = datetime.timedelta(seconds=float(stats[4]))
+    lastseen = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(float(stats[3])))
+    #paidblock = stats[6]
+    ip = stats[7]
+    totalmn = len(ranks)
+    rank = ranks[vin]
+
+    print("\n\033[92m=================== \033[91mMasternode Stats\033[00m \033[92m===================\033[00m\n")
+    if state != 'ENABLED':
+      print("Node Status:\t \033[91m%s\033[00m" % (state))
+    else:
+      print("Node Status:\t \033[96m%s\033[00m" % (state))
+    print("Payee Address:\t \033[96m%s\033[00m" % (address))
+    print("Masternode IP:\t \033[96m%s\033[00m" % (ip))
+    print("Pay Rank:\t \033[92m%s\033[00m \033[96mout of\033[00m \033[92m%s\033[00m" % (rank, totalmn))
+    print("Last Paid:\t \033[96m%s\033[00m" % (lastpay))
+    print("Last Seen:\t \033[96m%s\033[00m" % (lastseen))
+    print("Online For:\t \033[96m%s\033[00m" % (activesec))
+    print("\n\033[92m========================================================\033[00m\n")
+
+if __name__ == '__main__':
+    getStatus()
